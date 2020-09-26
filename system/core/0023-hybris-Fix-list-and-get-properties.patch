@@ -12,21 +12,22 @@ diff --git a/init/property_service.cpp b/init/property_service.cpp
 index d13f3429c..b60d8d143 100644
 --- a/init/property_service.cpp
 +++ b/init/property_service.cpp
-@@ -284,6 +284,12 @@ uint32_t InitPropertySet(const std::string& name, const std::string& value) {
+@@ -261,6 +261,13 @@
+     bool thread_started_ = false;
+ };
  
-     return result;
- }
 +// Legacy definition
 +typedef struct prop_msg_s {
 +    unsigned cmd;
 +    char name[PROP_NAME_MAX];
 +    char value[PROP_VALUE_MAX];
 +} prop_msg_t;
- 
++
  class SocketConnection {
    public:
-@@ -331,6 +337,17 @@ class SocketConnection {
-         return result == sizeof(value);
+     SocketConnection(int socket, const ucred& cred) : socket_(socket), cred_(cred) {}
+@@ -318,6 +325,17 @@
+         return true;
      }
  
 +    bool SendLegacyPropMsg(std::string name, std::string value) {
@@ -40,10 +41,10 @@ index d13f3429c..b60d8d143 100644
 +        return (result == sizeof(prop_msg_t));
 +    }
 +
-     int socket() { return socket_; }
+     [[nodiscard]] int Release() { return socket_.release(); }
  
      const ucred& cred() { return cred_; }
-@@ -594,14 +611,21 @@ static void handle_property_set_fd() {
+@@ -640,14 +658,21 @@
        }
      case PROP_MSG_GETPROP: {
          int ret;
@@ -68,7 +69,7 @@ index d13f3429c..b60d8d143 100644
              return;
          }
  
-@@ -613,6 +637,7 @@ static void handle_property_set_fd() {
+@@ -659,6 +684,7 @@
  
          /* Send the property value back */
          //TEMP_FAILURE_RETRY(send(s, &msg, sizeof(msg), 0));
@@ -76,7 +77,7 @@ index d13f3429c..b60d8d143 100644
          break;
        }
      case PROP_MSG_LISTPROP: {
-@@ -622,6 +647,7 @@ static void handle_property_set_fd() {
+@@ -668,6 +694,7 @@
              prop_name[0] = prop_value[0] = 0;
              __system_property_read(pi, prop_name, prop_value);
              //TEMP_FAILURE_RETRY(send(s, &msg, sizeof(msg), 0));

@@ -5,7 +5,7 @@ Subject: [PATCH 36/40] (hybris) disable some more selinux functionality.
 
 Change-Id: Ie63eb13b73d626668b32041fec4400cf2edd2fe5
 ---
- init/property_service.cpp | 3 +++
+ init/property_service.cpp | 2 ++
  init/subcontext.cpp       | 4 ++--
  init/util.cpp             | 4 ++++
  3 files changed, 9 insertions(+), 2 deletions(-)
@@ -14,21 +14,21 @@ diff --git a/init/property_service.cpp b/init/property_service.cpp
 index b60d8d143..620507789 100644
 --- a/init/property_service.cpp
 +++ b/init/property_service.cpp
-@@ -353,11 +353,14 @@ class SocketConnection {
-     const ucred& cred() { return cred_; }
- 
-     std::string source_context() const {
-+#if 0
-         char* source_context = nullptr;
-         getpeercon(socket_, &source_context);
-         std::string result = source_context;
-         freecon(source_context);
-         return result;
-+#endif
-+        return "";
+@@ -316,12 +316,14 @@
      }
  
-   private:
+     bool GetSourceContext(std::string* source_context) const {
++#if 0
+         char* c_source_context = nullptr;
+         if (getpeercon(socket_, &c_source_context) != 0) {
+             return false;
+         }
+         *source_context = c_source_context;
+         freecon(c_source_context);
++#endif
+         return true;
+     }
+
 diff --git a/init/subcontext.cpp b/init/subcontext.cpp
 index 092c51ceb..f0ea236d2 100644
 --- a/init/subcontext.cpp
